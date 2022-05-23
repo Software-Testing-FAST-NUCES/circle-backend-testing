@@ -13,151 +13,150 @@ const { Post, validate } = require("../models/post");
 const { Like } = require("../models/like");
 
 router.get("/user/:id", async (req, res) => {
-    try {
-        let postedByuser = await Post.find({
-            postedBy: req.params.id,
-        }).sort("-date");
+  try {
+    let postedByuser = await Post.find({
+      postedBy: req.params.id,
+    }).sort("-date");
 
-        res.send(postedByuser);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
-    }
+    res.send(postedByuser);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
 });
 
 router.post("/", [auth, upload.array("photos", 10)], async (req, res) => {
-    try {
-        const token = req.header("x-auth-token");
+  try {
+    const token = req.header("x-auth-token");
 
-        let user = await User.findById(req.user._id);
-        if (!user) return res.status(400).send("Can't find User!");
+    let user = await User.findById(req.user._id);
+    if (!user) return res.status(400).send("Can't find User!");
+    console.log("THIS 1");
 
-        req.body.postedBy = req.user._id;
-
-        const { error } = validate(
-            _.pick(req.body, ["text", "images", "postedBy", "date"])
-        );
-        if (error) return res.status(400).send(error.details[0].message);
-
-        let post = new Post({
-            text: req.body.text,
-            images: req.files.map((file) => file.filename),
-            postedBy: req.body.postedBy,
-            date: new Date(),
-        });
-
-        let like = new Like({
-            post: post.id,
-            likedBy: [],
-        });
-
-        like.save();
-
-        post = await post.save();
-        res.send(post);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
+    req.body.postedBy = req.user._id;
+    console.log(req.body);
+    const { error } = validate(
+      _.pick(req.body, ["text", "images", "postedBy", "date"])
+    );
+    if (error) {
+      console.log(error);
     }
+    // if (error) return res.status(400).send(error.details[0].message);
+    console.log("THIS 2");
+
+    let post = new Post({
+      text: req.body.text,
+      images: req.files.map((file) => file.filename),
+      postedBy: req.body.postedBy,
+      date: new Date(),
+    });
+
+    let like = new Like({
+      post: post.id,
+      likedBy: [],
+    });
+
+    like.save();
+    console.log("THIS 3");
+
+    post = await post.save();
+    res.send(post);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.message);
+  }
 });
 
 router.get("/", async (req, res) => {
-    try {
-        let posts = await Post.find({}).sort("-date");
-        if (!posts) return res.status(404).send("Can't find posts");
+  try {
+    let posts = await Post.find({}).sort("-date");
+    if (!posts) return res.status(404).send("Can't find posts");
 
-        res.send(posts);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
-    }
+    res.send(posts);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
 });
 
 router.get("/:id", auth, async (req, res, next) => {
-    try {
-        let post = await Post.findById(req.params.id);
-        if (!post) return res.status(404).send("Can't find Post!");
+  try {
+    let post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).send("Can't find Post!");
 
-        res.send(post);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
-    }
+    res.send(post);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
 });
 
 router.put("/:id", [auth, upload.array("photos")], async (req, res) => {
-    try {
-        const token = req.header("x-auth-token");
+  try {
+    const token = req.header("x-auth-token");
 
-        let user = await User.findById(req.user._id);
-        if (!user) return res.status(400).send("Can't find User!");
+    let user = await User.findById(req.user._id);
+    if (!user) return res.status(400).send("Can't find User!");
 
-        const { error } = validate(req.body);
-        if (error) return res.status(400).send(error.details[0].message);
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-        let post = await Post.findById(req.params.id);
-        if (!post) return res.status(400).send("Post not found!");
+    let post = await Post.findById(req.params.id);
+    if (!post) return res.status(400).send("Post not found!");
 
-        if (post.postedBy.toString() !== user.id)
-            return res
-                .status(400)
-                .send("You don't have permission to do that.");
+    if (post.postedBy.toString() !== user.id)
+      return res.status(400).send("You don't have permission to do that.");
 
-        if (req.files) {
-            if (post.images) {
-                post.images.forEach((img) =>
-                    fs.unlinkSync(
-                        path.join(
-                            __dirname,
-                            `../public/uploads/pictures/${img}`
-                        )
-                    )
-                );
-            }
-        }
-
-        post = await Post.findByIdAndUpdate(
-            post.id,
-            {
-                $set: {
-                    text: req.body.text,
-                    images: req.files.map((file) => file.filename),
-                    postedBy: req.body.postedBy,
-                    date: new Date(),
-                },
-            },
-            { new: true }
+    if (req.files) {
+      if (post.images) {
+        post.images.forEach((img) =>
+          fs.unlinkSync(
+            path.join(__dirname, `../public/uploads/pictures/${img}`)
+          )
         );
-
-        res.send(post);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
+      }
     }
+
+    post = await Post.findByIdAndUpdate(
+      post.id,
+      {
+        $set: {
+          text: req.body.text,
+          images: req.files.map((file) => file.filename),
+          postedBy: req.body.postedBy,
+          date: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    res.send(post);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
 });
 
 router.delete("/", auth, async (req, res, next) => {
-    try {
-        const token = req.header("x-auth-token");
+  try {
+    const token = req.header("x-auth-token");
 
-        let user = await User.findById(req.user._id);
-        if (!user) return res.status(400).send("Can't find User!");
+    let user = await User.findById(req.user._id);
+    if (!user) return res.status(400).send("Can't find User!");
 
-        let post = await Post.findById(req.body._id);
-        if (!post) return res.status(400).send("Post not found!");
+    let post = await Post.findById(req.body._id);
+    if (!post) return res.status(400).send("Post not found!");
 
-        if (post.createdBy.toString() !== user.id)
-            return res
-                .status(400)
-                .send("You don't have permission to do that.");
+    if (post.createdBy.toString() !== user.id)
+      return res.status(400).send("You don't have permission to do that.");
 
-        post = await Post.findOneAndDelete({ id: post.id });
+    post = await Post.findOneAndDelete({ id: post.id });
 
-        res.status(200).send();
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
-    }
+    res.status(200).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
 });
 
 module.exports = router;
