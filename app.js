@@ -12,6 +12,8 @@ require("./startup/db")();
 
 //listener
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
-    console.info(`listening on port ${port}`);
+var server = app.listen(port, () => {
+  console.info(`listening on port ${port}`);
 });
+
+module.exports = server;
