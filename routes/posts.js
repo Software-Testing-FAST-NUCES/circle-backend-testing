@@ -31,7 +31,6 @@ router.post("/", [auth, upload.array("photos", 10)], async (req, res) => {
 
     let user = await User.findById(req.user._id);
     if (!user) return res.status(400).send("Can't find User!");
-    console.log("THIS 1");
 
     req.body.postedBy = req.user._id;
     console.log(req.body);
@@ -42,7 +41,6 @@ router.post("/", [auth, upload.array("photos", 10)], async (req, res) => {
       console.log(error);
     }
     // if (error) return res.status(400).send(error.details[0].message);
-    console.log("THIS 2");
 
     let post = new Post({
       text: req.body.text,
@@ -57,7 +55,6 @@ router.post("/", [auth, upload.array("photos", 10)], async (req, res) => {
     });
 
     like.save();
-    console.log("THIS 3");
 
     post = await post.save();
     res.send(post);
