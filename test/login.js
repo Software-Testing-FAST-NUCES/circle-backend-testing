@@ -1,7 +1,7 @@
 let chai = require("chai");
 let server = require("../app");
 let chaiHttp = require("chai-http");
-
+const { oldUser, nonUser, loginEmptyFields } = require("../data/auth-data");
 let should = chai.should();
 chai.use(chaiHttp);
 
@@ -15,7 +15,7 @@ describe("Users", () => {
       chai
         .request(server)
         .post("/api/users/signin")
-        .send(user)
+        .send(oldUser)
         .end((err, res) => {
           res.should.have.status(200);
           res.body.should.be.a("object");
