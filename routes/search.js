@@ -19,6 +19,7 @@ router.post("/", async (req, res) => {
                     console.log(err);
                 } else {
                     usersfound = usersfound.map((user) => user._id);
+                    console.log(usersfound);
                     res.status(200).send(usersfound);
                 }
             }
