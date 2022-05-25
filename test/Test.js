@@ -7,7 +7,7 @@ const {
   nonexistingUser,
   searchEmptyField,
   signUpEmptyField,
-} = require("../data/search-data");
+} = require("../data/data");
 
 let should = chai.should();
 let { expect, assert } = require("chai");
