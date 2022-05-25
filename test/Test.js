@@ -6,6 +6,7 @@ const {
   existingUser,
   nonexistingUser,
   searchEmptyField,
+  signUpEmptyField,
 } = require("../data/search-data");
 
 let should = chai.should();
@@ -21,7 +22,7 @@ describe("Search APIs", () => {
         .send(existingUser)
         .end((err, res) => {
             assert.equal(res.status, 200);
-            // res.body.should.be.a("object");
+            res.body.should.be.a("array");
             done();
         });
     });
@@ -32,8 +33,7 @@ describe("Search APIs", () => {
         .post("/api/search/")
         .send(nonexistingUser)
         .end((err, res) => {
-            assert.equal(res.status, 500);
-            //res.body.should.be.a("object");
+            assert.equal(res.status, 200);
             done();
         });
     });
@@ -45,11 +45,37 @@ describe("Search APIs", () => {
         .send(searchEmptyField)
         .end((err, res) => {
             assert.equal(res.status, 200);
-            // res.body.should.be.a("object");
+            res.body.should.be.a("array");
             done();
         });
     });
-      
+
+    it("internal server error", (done) => {
+      chai
+        .request(server)
+        .post("/api/search2/")
+        .send(existingUser)
+        .end((err, res) => {
+            assert.equal(res.status, 404);
+            done();
+        });
+    });
+
   });
 
-});  
+});
+
+describe("POST users/signup", () => {
+
+  it("user should not be signed-up if any single field is empty", (done) => {
+    chai
+      .request(server)
+      .post("/api/users/signup")
+      .send(signUpEmptyField)
+      .end((err, res) => {
+        assert.equal(res.status, 400);
+        res.text.should.be.eq(`"email" is not allowed to be empty`);
+        done();
+      });
+  });
+});
