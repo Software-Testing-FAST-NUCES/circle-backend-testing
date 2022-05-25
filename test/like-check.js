@@ -1,14 +1,6 @@
 let chai = require("chai");
 let server = require("../app");
 let chaiHttp = require("chai-http");
-const {
-  newUser,
-  signUpEmptyFields,
-  oldUser,
-  currentUser,
-  nonUser,
-  loginEmptyFields,
-} = require("../data/auth-data");
 let should = chai.should();
 let { expect, assert } = require("chai");
 chai.use(chaiHttp);
